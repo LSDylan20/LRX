@@ -1,0 +1,263 @@
+# LaneRunner Development Rules & Requirements
+# Version: 1.0.0
+# Last Updated: 2025-02-03
+
+# 1. Project Structure
+structure:
+  root_directories:
+    - src/: Source code
+    - docs/: Documentation
+    - tests/: Test files
+    - public/: Static assets
+    - config/: Configuration files
+    - scripts/: Build and utility scripts
+  
+  src_structure:
+    components:
+      - ui/: Basic UI components
+      - common/: Common business components
+    
+    features:
+      - loads/: Load management feature
+        - components/: Feature components
+        - api/: Service integration
+        - hooks/: Feature hooks
+        - types.ts: Feature types
+      - rates/: Rate management
+      - tracking/: Shipment tracking
+      - voice/: Voice/chat system
+    
+    lib:
+      - api/: API client and utilities
+      - ai/: AI service integration
+      - auth/: Authentication utilities
+      - hooks/: Shared custom hooks
+      - supabase/: Supabase client and realtime
+    
+    store:
+      - loads.ts: Loads state management
+      - rates.ts: Rates state management
+      - user.ts: User state management
+      - index.ts: Store types and exports
+    
+    types:
+      - api.ts: API types
+      - models.ts: Shared models
+
+# 2. Development Standards
+standards:
+  typescript:
+    strict: true
+    rules:
+      - Use strict mode always
+      - Prefer const over let
+      - Explicit return types
+      - Proper error handling
+      - Meaningful variable names
+  
+  react:
+    components:
+      - Functional components only
+      - Props must be typed
+      - Proper key props in lists
+      - Error boundaries required
+    
+    hooks:
+      - Custom hooks for logic
+      - Proper dependency arrays
+      - Memoization when needed
+      - Effect cleanup required
+    
+    state:
+      - Use Zustand for state
+      - Atomic state updates
+      - Computed selectors
+      - Middleware for side effects
+  
+  code_quality:
+    linting:
+      - ESLint with strict rules
+      - Prettier for formatting
+      - TypeScript strict checks
+      - Import ordering rules
+    
+    testing:
+      coverage: 100%
+      types:
+        - Unit tests required
+        - Integration tests
+        - E2E for critical paths
+        - Error scenarios
+    
+    performance:
+      metrics:
+        - Bundle size limits
+        - Load time < 2s
+        - FCP < 1s
+        - TTI < 3s
+      
+      optimization:
+        - Code splitting
+        - Image optimization
+        - Proper caching
+        - Tree shaking
+
+# 3. Feature Requirements
+features:
+  auth:
+    methods: [email, oauth]
+    mfa: required
+    session: 24h
+    state: zustand
+  
+  loads:
+    posting: [manual, semi-auto, auto]
+    matching: ai_powered
+    tracking: realtime
+    websocket: required
+    state: zustand
+  
+  rates:
+    optimization: market_data
+    negotiation: ai_powered
+    analytics: enabled
+    realtime: required
+    state: zustand
+  
+  ai:
+    negotiation: configurable
+    voice: enabled
+    chat: realtime
+    streaming: required
+    state: zustand
+
+# 4. Technical Requirements
+technical:
+  database:
+    primary: postgresql
+    cache: redis
+    search: elastic
+    realtime: required
+  
+  api:
+    rest: required
+    websocket: required
+    documentation: complete
+    events: required
+  
+  security:
+    auth: jwt_refresh
+    encryption: required
+    rbac: implemented
+    realtime: secured
+  
+  monitoring:
+    services: [prometheus, grafana]
+    retention: 30d
+    realtime: required
+
+# 5. Integration Requirements
+integrations:
+  required:
+    - maps: routing
+    - twilio: voice
+    - stripe: payments
+    - websocket: realtime
+  optional:
+    - weather: conditions
+    - fuel: prices
+
+# 6. Quality Gates
+quality:
+  code:
+    - Peer review
+    - Style compliance
+    - Security check
+    - Performance test
+  
+  testing:
+    - Unit coverage > 100%
+    - Integration tests
+    - E2E critical paths
+    - Realtime testing
+  
+  deployment:
+    - CI/CD pipeline
+    - Auto rollback
+    - Health checks
+    - Realtime monitoring
+
+# 7. Documentation Requirements
+documentation:
+  technical:
+    - API specs
+    - Architecture
+    - Integration
+    - Security
+    - Realtime
+    - State management
+  
+  user:
+    - User guide
+    - Admin guide
+    - API guide
+    - Websocket guide
+  
+  development:
+    - Setup guide
+    - Contributing
+    - Testing
+    - Realtime patterns
+    - State patterns
+
+# 8. Maintenance Requirements
+maintenance:
+  updates:
+    security: immediate
+    dependencies: monthly
+    features: quarterly
+  
+  monitoring:
+    uptime: 99.9%
+    response: < 500ms
+    error_rate: < 0.1%
+  
+  backup:
+    frequency: daily
+    retention: 30d
+    testing: monthly
+
+# 9. Completion Criteria
+completion:
+  functionality:
+    core_features: implemented
+    ai_features: operational
+    integrations: tested
+    realtime: verified
+    state_management: verified
+  
+  performance:
+    metrics_met: true
+    optimization_complete: true
+    scalability_tested: true
+    realtime_performance: verified
+    state_performance: verified
+  
+  security:
+    penetration_tested: true
+    vulnerabilities_addressed: true
+    compliance_checked: true
+    realtime_secured: true
+  
+  documentation:
+    technical_complete: true
+    user_guides_complete: true
+    api_docs_complete: true
+    realtime_docs_complete: true
+    state_docs_complete: true
+  
+  deployment:
+    infrastructure_ready: true
+    monitoring_active: true
+    backup_configured: true
+    realtime_monitored: true

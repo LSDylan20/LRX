@@ -1,0 +1,47 @@
+frontend:
+  - src/**/*.tsx
+  - src/**/*.ts
+  - src/**/*.css
+
+store:
+  - src/store/**/*
+
+api:
+  - src/lib/api/**/*
+
+components:
+  - src/components/**/*
+
+features:
+  - src/features/**/*
+
+types:
+  - src/types/**/*
+
+tests:
+  - src/**/*.test.ts
+  - src/**/*.test.tsx
+  - src/test/**/*
+
+documentation:
+  - docs/**/*
+  - README.md
+  - '**/*.md'
+
+configuration:
+  - '*.config.*'
+  - .github/**/*
+  - '**/tsconfig*.json'
+  - .env*
+
+dependencies:
+  - package.json
+  - package-lock.json
+  - yarn.lock
+
+ci:
+  - .github/workflows/*
+
+security:
+  - '**/security.yml'
+  - '**/dependabot.yml'
