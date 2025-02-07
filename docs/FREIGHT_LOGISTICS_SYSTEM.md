@@ -201,15 +201,15 @@ interface DynamicPricingSystem {
     maxIncrease: number;
     maxDecrease: number;
     updateFrequency: number;
-    smoothingFactor: number;
+    minMargin: number;
   };
   
-  // Market response
-  marketResponse: {
-    priceElasticity: number;
-    competitorResponse: boolean;
-    demandShifts: boolean;
-    marketShare: boolean;
+  // Market conditions
+  marketConditions: {
+    currentDemand: 'high' | 'medium' | 'low';
+    marketTrend: 'rising' | 'stable' | 'falling';
+    competitionLevel: 'high' | 'medium' | 'low';
+    seasonalImpact: number;
   };
 }
 ```
@@ -224,194 +224,233 @@ interface NegotiationStrategy {
     initialOffer: 'aggressive' | 'moderate' | 'conservative';
     counterOfferLogic: 'fixed' | 'percentage' | 'dynamic';
     maxRounds: number;
-    timeoutDuration: number;
+    timeoutMinutes: number;
   };
   
-  // Behavioral rules
-  behavior: {
-    adaptToCounterparty: boolean;
-    useAnchoringTechnique: boolean;
-    applyTimePressure: boolean;
-    useMarketLeverage: boolean;
+  // Decision factors
+  decisionFactors: {
+    marketPosition: number;
+    urgencyLevel: number;
+    relationshipValue: number;
+    historicalSuccess: number;
   };
   
-  // Decision making
-  decisions: {
-    autonomousDecisions: boolean;
-    requireApproval: boolean;
-    escalationThreshold: number;
-    fallbackOptions: string[];
+  // AI assistance
+  aiAssistance: {
+    suggestCounterOffers: boolean;
+    predictAcceptanceProbability: boolean;
+    optimizeStrategy: boolean;
+    learnFromHistory: boolean;
   };
 }
 ```
 
-### 4.2 Multi-Party Negotiation
+### 4.2 Communication Protocol
 ```typescript
-interface MultiPartyNegotiation {
-  // Party management
-  partyManagement: {
-    maxParties: number;
-    roleDefinitions: string[];
-    communicationRules: string[];
-    conflictResolution: string[];
+interface CommunicationProtocol {
+  // Channel configuration
+  channels: {
+    inApp: boolean;
+    email: boolean;
+    sms: boolean;
+    voice: boolean;
+    api: boolean;
   };
   
-  // Coordination
-  coordination: {
-    sequentialNegotiation: boolean;
-    parallelNegotiation: boolean;
-    informationSharing: boolean;
-    consensusBuilding: boolean;
+  // Message templates
+  templates: {
+    offerNotification: string;
+    counterOfferAlert: string;
+    acceptanceConfirmation: string;
+    rejectionNotice: string;
+  };
+  
+  // Automation rules
+  automation: {
+    autoRespond: boolean;
+    delayBetweenMessages: number;
+    escalationRules: string[];
+    notificationPreferences: NotificationConfig;
   };
 }
 ```
 
-## 5. Market Intelligence
+## 5. Analytics & Reporting
 
-### 5.1 Market Analysis
+### 5.1 Performance Metrics
 ```typescript
-interface MarketAnalysis {
-  // Analysis components
-  components: {
-    supplyDemandAnalysis: boolean;
-    competitorAnalysis: boolean;
-    trendAnalysis: boolean;
-    geographicAnalysis: boolean;
+interface PerformanceMetrics {
+  // Load metrics
+  loadMetrics: {
+    totalLoads: number;
+    matchSuccess: number;
+    bookingRate: number;
+    cancellationRate: number;
   };
   
-  // Data collection
-  dataCollection: {
-    realTimeData: boolean;
-    historicalData: boolean;
-    predictiveModels: boolean;
-    marketSurveys: boolean;
+  // Financial metrics
+  financialMetrics: {
+    averageMargin: number;
+    revenuePerLoad: number;
+    costPerLoad: number;
+    profitability: number;
+  };
+  
+  // Efficiency metrics
+  efficiencyMetrics: {
+    matchingSpeed: number;
+    negotiationDuration: number;
+    automationLevel: number;
+    userIntervention: number;
   };
 }
 ```
 
-### 5.2 Predictive Analytics
+### 5.2 Reporting System
 ```typescript
-interface PredictiveAnalytics {
-  // Prediction models
-  models: {
-    demandForecasting: boolean;
-    pricePrediction: boolean;
-    capacityPrediction: boolean;
-    riskAssessment: boolean;
+interface ReportingSystem {
+  // Report types
+  reportTypes: {
+    dailyOperations: boolean;
+    financialSummary: boolean;
+    performanceAnalysis: boolean;
+    marketTrends: boolean;
   };
   
-  // Model configuration
-  configuration: {
-    updateFrequency: number;
-    confidenceThreshold: number;
-    historicalWindow: number;
-    featureImportance: boolean;
+  // Data visualization
+  visualization: {
+    charts: boolean;
+    dashboards: boolean;
+    realTimeMetrics: boolean;
+    customReports: boolean;
+  };
+  
+  // Distribution
+  distribution: {
+    automatedDelivery: boolean;
+    recipientRoles: string[];
+    frequency: 'daily' | 'weekly' | 'monthly';
+    format: 'pdf' | 'excel' | 'web';
   };
 }
 ```
 
-## 6. Automation Rules
+## 6. Integration Points
 
-### 6.1 Business Rules
+### 6.1 External Systems
 ```typescript
-interface BusinessRules {
-  // Operating rules
-  operatingRules: {
-    workingHours: TimeRange[];
-    geographicBoundaries: string[];
-    equipmentRestrictions: string[];
-    customerSegments: string[];
+interface ExternalIntegrations {
+  // Load boards
+  loadBoards: {
+    dATConnect: boolean;
+    truckstop: boolean;
+    123Loadboard: boolean;
+    customBoards: string[];
   };
   
-  // Risk management
-  riskManagement: {
-    creditChecks: boolean;
-    insuranceVerification: boolean;
-    performanceHistory: boolean;
-    blacklistChecking: boolean;
+  // ERP systems
+  erpSystems: {
+    sap: boolean;
+    oracle: boolean;
+    netsuite: boolean;
+    custom: string[];
+  };
+  
+  // Payment systems
+  paymentSystems: {
+    quickPay: boolean;
+    factoring: boolean;
+    ach: boolean;
+    wire: boolean;
   };
 }
 ```
 
-### 6.2 Compliance
+### 6.2 API Integration
 ```typescript
-interface ComplianceRules {
+interface APIIntegration {
+  // API configuration
+  apiConfig: {
+    version: string;
+    baseUrl: string;
+    authentication: AuthConfig;
+    rateLimit: RateLimitConfig;
+  };
+  
+  // Endpoints
+  endpoints: {
+    loads: string;
+    rates: string;
+    carriers: string;
+    tracking: string;
+  };
+  
+  // Webhooks
+  webhooks: {
+    statusUpdates: boolean;
+    rateChanges: boolean;
+    matchAlerts: boolean;
+    customEvents: string[];
+  };
+}
+```
+
+## 7. Security & Compliance
+
+### 7.1 Security Controls
+```typescript
+interface SecurityControls {
+  // Authentication
+  authentication: {
+    mfa: boolean;
+    ssoIntegration: boolean;
+    apiKeyManagement: boolean;
+    sessionControl: boolean;
+  };
+  
+  // Authorization
+  authorization: {
+    rbac: boolean;
+    customPolicies: boolean;
+    auditLogging: boolean;
+    accessReview: boolean;
+  };
+  
+  // Data protection
+  dataProtection: {
+    encryption: boolean;
+    masking: boolean;
+    retention: boolean;
+    disposal: boolean;
+  };
+}
+```
+
+### 7.2 Compliance Requirements
+```typescript
+interface ComplianceRequirements {
   // Regulatory compliance
   regulatory: {
-    dotCompliance: boolean;
-    hoursOfService: boolean;
-    hazmatRules: boolean;
-    insuranceRequirements: boolean;
+    gdpr: boolean;
+    ccpa: boolean;
+    hipaa: boolean;
+    sox: boolean;
   };
   
-  // Documentation
-  documentation: {
-    requiredDocuments: string[];
-    verificationProcess: string[];
-    retentionPolicy: string[];
-    auditTrail: boolean;
+  // Industry standards
+  standards: {
+    iso27001: boolean;
+    soc2: boolean;
+    pci: boolean;
+    customStandards: string[];
+  };
+  
+  // Audit requirements
+  audit: {
+    frequency: string;
+    scope: string[];
+    reportingRequirements: string[];
+    remediationProcedures: string[];
   };
 }
 ```
-
-## 7. Performance Monitoring
-
-### 7.1 System Metrics
-```typescript
-interface SystemMetrics {
-  // Performance metrics
-  performance: {
-    matchingAccuracy: number;
-    negotiationSuccess: number;
-    rateOptimization: number;
-    userSatisfaction: number;
-  };
-  
-  // Operational metrics
-  operations: {
-    loadVolume: number;
-    averageResponseTime: number;
-    automationRate: number;
-    errorRate: number;
-  };
-}
-```
-
-### 7.2 Business Intelligence
-```typescript
-interface BusinessIntelligence {
-  // KPI tracking
-  kpis: {
-    revenueMetrics: boolean;
-    marginAnalysis: boolean;
-    customerMetrics: boolean;
-    operationalMetrics: boolean;
-  };
-  
-  // Reporting
-  reporting: {
-    realTimeReports: boolean;
-    scheduledReports: boolean;
-    customReports: boolean;
-    alerting: boolean;
-  };
-}
-```
-
-This system provides:
-1. Complete user control over automation levels
-2. Sophisticated rate optimization
-3. AI-powered negotiation strategies
-4. Comprehensive market analysis
-5. Real-time performance monitoring
-6. Compliance management
-7. Business intelligence
-
-Key Features:
-- Granular control over AI autonomy
-- Flexible approval workflows
-- Dynamic rate optimization
-- Multi-party negotiation support
-- Real-time market intelligence
-- Comprehensive compliance checks
-- Performance analytics

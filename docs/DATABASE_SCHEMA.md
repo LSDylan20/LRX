@@ -312,3 +312,158 @@ order by created_at desc;
 - Point-in-time recovery enabled
 - 30-day retention period
 - Automated backup testing weekly
+
+## Performance Considerations
+
+### Indexing Strategy
+- B-tree indexes for exact matches and ranges
+- GiST indexes for geographical queries
+- Partial indexes for frequently filtered subsets
+- Expression indexes for computed values
+
+### Partitioning
+```sql
+-- Partition tracking updates by month
+CREATE TABLE tracking_updates (
+    id UUID NOT NULL,
+    load_id UUID,
+    latitude DECIMAL NOT NULL,
+    longitude DECIMAL NOT NULL,
+    timestamp TIMESTAMPTZ NOT NULL
+) PARTITION BY RANGE (timestamp);
+
+-- Create monthly partitions
+CREATE TABLE tracking_updates_y2025m01 PARTITION OF tracking_updates
+    FOR VALUES FROM ('2025-01-01') TO ('2025-02-01');
+```
+
+### Materialized Views
+```sql
+-- Market rate averages
+CREATE MATERIALIZED VIEW market_rate_averages AS
+SELECT
+    origin_state,
+    destination_state,
+    equipment_type,
+    date_trunc('day', date) as day,
+    AVG(rate) as average_rate,
+    COUNT(*) as volume
+FROM rate_history
+GROUP BY origin_state, destination_state, equipment_type, date_trunc('day', date)
+WITH DATA;
+
+-- Refresh schedule
+REFRESH MATERIALIZED VIEW market_rate_averages
+    WITH DATA
+    CONCURRENTLY;
+```
+
+## Security
+
+### Row Level Security
+```sql
+-- Enable RLS
+ALTER TABLE loads ENABLE ROW LEVEL SECURITY;
+
+-- Define policies
+CREATE POLICY load_access ON loads
+    USING (
+        shipper_id IN (SELECT company_id FROM users WHERE id = current_user_id())
+        OR carrier_id IN (SELECT company_id FROM users WHERE id = current_user_id())
+        OR broker_id IN (SELECT company_id FROM users WHERE id = current_user_id())
+    );
+```
+
+### Audit Logging
+```sql
+CREATE TABLE audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    table_name TEXT NOT NULL,
+    record_id UUID NOT NULL,
+    action TEXT NOT NULL,
+    old_data JSONB,
+    new_data JSONB,
+    user_id UUID REFERENCES users(id),
+    ip_address TEXT,
+    timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX idx_audit_table ON audit_logs(table_name);
+CREATE INDEX idx_audit_record ON audit_logs(record_id);
+CREATE INDEX idx_audit_user ON audit_logs(user_id);
+CREATE INDEX idx_audit_time ON audit_logs(timestamp);
+```
+
+## Maintenance
+
+### Vacuum Schedule
+```sql
+-- Regular vacuum
+VACUUM ANALYZE loads;
+VACUUM ANALYZE tracking_updates;
+VACUUM ANALYZE messages;
+
+-- Configure autovacuum
+ALTER TABLE loads SET (
+    autovacuum_vacuum_scale_factor = 0.1,
+    autovacuum_analyze_scale_factor = 0.05
+);
+```
+
+### Backup Strategy
+```sql
+-- Daily backups
+pg_dump -Fc -f backup_%Y%m%d.dump lanerunner
+
+-- Point-in-time recovery
+ALTER SYSTEM SET wal_level = replica;
+ALTER SYSTEM SET archive_mode = on;
+ALTER SYSTEM SET archive_command = 'test ! -f /archive/%f && cp %p /archive/%f';
+```
+
+## Monitoring
+
+### Performance Metrics
+```sql
+-- Query performance
+SELECT
+    query,
+    calls,
+    total_time,
+    mean_time,
+    rows
+FROM pg_stat_statements
+ORDER BY total_time DESC
+LIMIT 10;
+
+-- Table statistics
+SELECT
+    schemaname,
+    relname,
+    seq_scan,
+    seq_tup_read,
+    idx_scan,
+    idx_tup_fetch
+FROM pg_stat_user_tables;
+```
+
+### Health Checks
+```sql
+-- Connection status
+SELECT
+    datname,
+    numbackends,
+    xact_commit,
+    xact_rollback,
+    blks_read,
+    blks_hit
+FROM pg_stat_database;
+
+-- Lock monitoring
+SELECT
+    locktype,
+    relation::regclass,
+    mode,
+    granted
+FROM pg_locks;
+```

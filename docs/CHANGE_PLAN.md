@@ -1,292 +1,433 @@
 # LaneRunner Codebase Restructuring Plan
 
 ## Overview
-This document outlines the necessary changes to align the current codebase with our target architecture as defined in `.windsurfrules` and other documentation. The plan includes file movements, modifications, and deletions required to achieve the desired structure.
+This document outlines the comprehensive plan for restructuring the LaneRunner codebase to align with our target architecture, focusing on maintainability, scalability, and performance.
 
-## Current Structure Analysis
+## 1. Current Structure Analysis
+
+### 1.1 Directory Structure
 ```
 lanerunner/
 ├── .bolt/                 # Build output
-├── docs/                  # Documentation
-├── src/                   # Source code
-│   ├── components/        # UI components
-│   ├── features/         # Feature modules
-│   ├── lib/              # Utilities
-│   ├── store/            # State management
-│   ├── types/            # TypeScript types
-│   ├── pages/            # Page components
-│   ├── App.tsx           # Main app component
-│   └── main.tsx          # Entry point
-├── supabase/             # Database
-└── [config files]        # Various config files
+├── docs/                 # Documentation
+├── src/                  # Source code
+│   ├── components/      # UI components
+│   ├── features/        # Feature modules
+│   ├── lib/             # Utilities
+│   ├── store/           # State management
+│   ├── types/           # TypeScript types
+│   ├── pages/           # Page components
+│   ├── App.tsx          # Main app component
+│   └── main.tsx         # Entry point
+├── supabase/            # Database
+└── [config files]       # Various config files
 ```
 
-## Database Types Analysis
-The codebase is built around the following core database tables:
-- users (auth and roles)
-- loads (freight management)
-- carrier_profiles (carrier information)
-- quotes (load quotes)
-- shipments (active shipments)
-- documents (load documentation)
-- carrier_vehicles (vehicle management)
-- messages (communication)
-- notifications (user notifications)
-
-## Required Changes
-
-### 1. Directory Structure Changes
-
-#### Create New Directories
-```
-src/
-├── components/
-│   ├── ui/              # Move basic UI components here
-│   └── common/          # Move business components here
-├── features/
-│   ├── loads/
-│   │   ├── components/
-│   │   ├── api/
-│   │   ├── hooks/
-│   │   └── types.ts
-│   ├── quotes/
-│   ├── shipments/
-│   ├── carriers/
-│   └── messages/
-├── lib/
-│   ├── api/
-│   ├── ai/
-│   ├── auth/
-│   ├── hooks/
-│   └── supabase/        # Supabase client and realtime subscriptions
-├── pages/
-├── store/
-│   ├── loads.ts         # Loads state store
-│   ├── quotes.ts         # Quotes state store
-│   ├── shipments.ts         # Shipments state store
-│   ├── carriers.ts         # Carriers state store
-│   ├── messages.ts         # Messages state store
-│   └── index.ts         # Store exports and types
-└── types/
-    ├── database.ts
-    ├── models.ts
-    └── api.ts
-```
-
-### 2. Type Definitions
+### 1.2 Core Database Tables
 ```typescript
-// src/types/database.ts
-export * from '@/lib/database.types'
-
-// src/types/models.ts
-export interface LoadWithRelations extends Database['public']['Tables']['loads']['Row'] {
-  shipper: Database['public']['Tables']['users']['Row']
-  quotes: Database['public']['Tables']['quotes']['Row'][]
-  shipment?: Database['public']['Tables']['shipments']['Row']
+interface DatabaseSchema {
+  users: {
+    id: string;
+    email: string;
+    role: UserRole;
+    profile: UserProfile;
+  };
+  loads: {
+    id: string;
+    shipper_id: string;
+    status: LoadStatus;
+    details: LoadDetails;
+  };
+  carrier_profiles: {
+    id: string;
+    user_id: string;
+    company: CompanyDetails;
+    fleet: FleetDetails;
+  };
+  quotes: {
+    id: string;
+    load_id: string;
+    carrier_id: string;
+    rate: RateDetails;
+  };
+  shipments: {
+    id: string;
+    load_id: string;
+    carrier_id: string;
+    status: ShipmentStatus;
+  };
+  documents: {
+    id: string;
+    reference_id: string;
+    type: DocumentType;
+    url: string;
+  };
+  carrier_vehicles: {
+    id: string;
+    carrier_id: string;
+    details: VehicleDetails;
+  };
+  messages: {
+    id: string;
+    thread_id: string;
+    sender_id: string;
+    content: MessageContent;
+  };
+  notifications: {
+    id: string;
+    user_id: string;
+    type: NotificationType;
+    data: NotificationData;
+  };
 }
-
-// Similar interface extensions for other related types
 ```
 
-### 3. State Management (Zustand)
-```typescript
-// src/store/loads.ts
-import { create } from 'zustand'
-import type { Database } from '@/types/database'
+## 2. Target Architecture
 
-type Load = Database['public']['Tables']['loads']['Row']
-
-interface LoadsState {
-  loads: Load[]
-  isLoading: boolean
-  error: Error | null
-  addLoad: (load: Load) => void
-  updateLoad: (id: string, updates: Partial<Load>) => void
-  subscribeToLoads: () => () => void
-}
-
-// Similar stores for other database tables
+### 2.1 Directory Structure
+```
+lanerunner/
+├── apps/                      # Application modules
+│   ├── client/               # React frontend
+│   │   ├── src/
+│   │   │   ├── components/   # UI components
+│   │   │   │   ├── ui/      # Basic UI components
+│   │   │   │   └── common/  # Business components
+│   │   │   ├── features/    # Feature modules
+│   │   │   │   ├── loads/
+│   │   │   │   ├── rates/
+│   │   │   │   ├── tracking/
+│   │   │   │   └── voice/
+│   │   │   ├── lib/         # Shared utilities
+│   │   │   ├── store/       # State management
+│   │   │   └── types/       # TypeScript types
+│   │   └── [config files]
+│   ├── websocket-service/    # WebSocket service
+│   ├── load-service/         # Load management service
+│   ├── rate-service/         # Rate optimization service
+│   └── voice-service/        # Voice/chat service
+├── packages/                 # Shared packages
+│   ├── ui/                  # UI component library
+│   ├── api-client/          # API client library
+│   └── common/              # Shared utilities
+├── infrastructure/          # Infrastructure code
+│   ├── kubernetes/         # K8s configurations
+│   ├── terraform/          # Infrastructure as Code
+│   └── docker/            # Docker configurations
+└── tools/                 # Development tools
 ```
 
-### 4. File Movements
+### 2.2 Feature Module Structure
+Each feature module follows this structure:
+```
+feature/
+├── components/           # Feature-specific components
+│   ├── __tests__/       # Component tests
+│   └── stories/         # Storybook stories
+├── api/                 # API integration
+│   ├── client.ts        # API client
+│   └── types.ts         # API types
+├── hooks/               # Custom hooks
+│   └── __tests__/       # Hook tests
+├── store/               # State management
+│   └── __tests__/       # Store tests
+├── utils/               # Feature utilities
+├── types.ts             # Feature types
+└── index.ts             # Public API
+```
 
-#### Components Directory
-- Move from: `src/components/*`
-- To: `src/components/ui/` or `src/components/common/`
-- Criteria: 
-  - UI components: Basic, reusable UI elements
-  - Common components: Business logic components
+## 3. Implementation Plan
 
-#### Pages Directory
-- Move from: `src/pages/*`
-- To: Respective feature directories
-- Example: `src/pages/loads.tsx` → `src/features/loads/components/LoadsPage.tsx`
+### 3.1 Phase 1: Infrastructure Setup (Week 1)
+1. Repository Structure
+   - Set up monorepo with pnpm workspaces
+   - Configure TypeScript paths
+   - Set up ESLint and Prettier
+   - Configure testing framework
 
-#### Library Files
-- Move utility functions to appropriate lib directories
-- Create new API clients in `src/lib/api/`
-- Set up Supabase realtime subscriptions in `src/lib/supabase/`
+2. Build System
+   - Configure Vite for client
+   - Set up module federation
+   - Configure bundle analysis
+   - Implement CI/CD pipelines
 
-### 5. New Files to Create
+3. Development Environment
+   - Docker compose setup
+   - Local development scripts
+   - Database migrations
+   - Seed data generation
 
-#### Feature Modules
-1. Loads Feature
-   - `src/features/loads/api/client.ts`
-   - `src/features/loads/hooks/useLoads.ts`
-   - `src/features/loads/types.ts`
+### 3.2 Phase 2: Core Services (Weeks 2-3)
+1. Client Application
+   - Implement new directory structure
+   - Set up routing system
+   - Configure state management
+   - Implement error boundaries
 
-2. Quotes Feature
-   - `src/features/quotes/api/client.ts`
-   - `src/features/quotes/hooks/useQuotes.ts`
-   - `src/features/quotes/types.ts`
+2. WebSocket Service
+   - Set up NestJS application
+   - Implement connection handling
+   - Set up authentication
+   - Configure event system
 
-3. Shipments Feature
-   - `src/features/shipments/api/client.ts`
-   - `src/features/shipments/hooks/useShipments.ts`
-   - `src/features/shipments/types.ts`
+3. Load Service
+   - Set up NestJS application
+   - Implement CRUD operations
+   - Set up event handlers
+   - Configure caching
 
-4. Carriers Feature
-   - `src/features/carriers/api/client.ts`
-   - `src/features/carriers/hooks/useCarriers.ts`
-   - `src/features/carriers/types.ts`
+4. Rate Service
+   - Set up NestJS application
+   - Implement rate calculation
+   - Set up market data integration
+   - Configure optimization engine
 
-5. Messages Feature
-   - `src/features/messages/api/client.ts`
-   - `src/features/messages/hooks/useMessages.ts`
-   - `src/features/messages/types.ts`
+### 3.3 Phase 3: Feature Migration (Weeks 4-5)
+1. Load Management
+   - Migrate components
+   - Set up state management
+   - Implement real-time updates
+   - Add error handling
 
-#### Library Files
-1. API Layer
-   - `src/lib/api/baseClient.ts`
-   - `src/lib/api/endpoints.ts`
-   - `src/lib/api/types.ts`
+2. Rate Management
+   - Migrate components
+   - Implement negotiation system
+   - Set up analytics
+   - Add market insights
 
-2. AI Integration
-   - `src/lib/ai/gemini.ts`
-   - `src/lib/ai/types.ts`
+3. Tracking System
+   - Migrate components
+   - Set up real-time tracking
+   - Implement geofencing
+   - Add notifications
 
-3. Authentication
-   - `src/lib/auth/client.ts`
-   - `src/lib/auth/hooks.ts`
+4. Voice/Chat System
+   - Set up WebSocket handlers
+   - Implement chat features
+   - Set up voice integration
+   - Add AI responses
 
-4. Supabase Integration
-   - `src/lib/supabase/client.ts`
-   - `src/lib/supabase/subscriptions.ts`
-   - `src/lib/supabase/hooks.ts`
+### 3.4 Phase 4: Integration & Testing (Week 6)
+1. Integration Testing
+   - Set up test environment
+   - Write integration tests
+   - Configure test coverage
+   - Add performance tests
 
-#### Store Files (Zustand)
-1. State Stores
-   - `src/store/loads.ts`
+2. Documentation
+   - Update API documentation
+   - Add architecture diagrams
+   - Write migration guides
+   - Create troubleshooting guides
+
+3. Performance Optimization
+   - Implement code splitting
+   - Optimize bundle size
+   - Add caching strategies
+   - Configure CDN
+
+## 4. Migration Strategy
+
+### 4.1 Code Migration
+1. Component Migration
    ```typescript
-   // Example Zustand store structure
-   import create from 'zustand'
+   // Before: src/components/LoadCard.tsx
+   import { FC } from 'react'
+   import { Load } from '../types'
    
-   interface LoadsState {
-     loads: Load[]
-     isLoading: boolean
-     error: Error | null
-     addLoad: (load: Load) => void
-     updateLoad: (id: string, updates: Partial<Load>) => void
-     setLoading: (loading: boolean) => void
-     setError: (error: Error | null) => void
+   const LoadCard: FC<{ load: Load }> = ({ load }) => {
+     // Component implementation
    }
    
-   export const useLoadsStore = create<LoadsState>((set) => ({
+   // After: src/features/loads/components/LoadCard/index.tsx
+   import { FC } from 'react'
+   import { Load } from '../../types'
+   import { useLoadActions } from '../../hooks'
+   import { Card } from '@/components/ui'
+   
+   export interface LoadCardProps {
+     load: Load;
+     onAction?: (action: string) => void;
+   }
+   
+   export const LoadCard: FC<LoadCardProps> = ({ load, onAction }) => {
+     const { updateLoad } = useLoadActions()
+     // Enhanced component implementation
+   }
+   ```
+
+2. State Migration
+   ```typescript
+   // Before: Redux store
+   const loadSlice = createSlice({
+     name: 'loads',
+     initialState,
+     reducers: {/*...*/}
+   })
+   
+   // After: Zustand store
+   interface LoadStore {
+     loads: Load[];
+     isLoading: boolean;
+     error: Error | null;
+     addLoad: (load: Load) => void;
+     updateLoad: (id: string, updates: Partial<Load>) => void;
+   }
+   
+   export const useLoadStore = create<LoadStore>((set) => ({
      loads: [],
      isLoading: false,
      error: null,
-     addLoad: (load) => set((state) => ({ 
-       loads: [...state.loads, load] 
-     })),
-     updateLoad: (id, updates) => set((state) => ({
-       loads: state.loads.map(load => 
-         load.id === id ? { ...load, ...updates } : load
-       )
-     })),
-     setLoading: (loading) => set({ isLoading: loading }),
-     setError: (error) => set({ error })
+     addLoad: (load) => 
+       set((state) => ({ loads: [...state.loads, load] })),
+     updateLoad: (id, updates) =>
+       set((state) => ({
+         loads: state.loads.map(load =>
+           load.id === id ? { ...load, ...updates } : load
+         )
+       }))
    }))
    ```
-   - Similar structure for `quotes.ts`, `shipments.ts`, `carriers.ts`, `messages.ts`
-   - `index.ts` for type exports and store composition
 
-### 6. Files to Update
+### 4.2 Database Migration
+1. Schema Updates
+   ```sql
+   -- Add new columns
+   ALTER TABLE loads
+   ADD COLUMN optimization_data JSONB,
+   ADD COLUMN ai_matching_score FLOAT;
+   
+   -- Create new tables
+   CREATE TABLE load_events (
+     id UUID PRIMARY KEY,
+     load_id UUID REFERENCES loads(id),
+     event_type TEXT,
+     data JSONB,
+     created_at TIMESTAMPTZ DEFAULT NOW()
+   );
+   ```
 
-1. Configuration Files
-   - Update `tsconfig.json` with new path aliases
-   - Update `vite.config.ts` with new build configuration
-   - Update `package.json`:
-     ```diff
-     {
-       "dependencies": {
-     -   "zustand": "^4.x.x"
-       }
+2. Data Migration
+   ```typescript
+   async function migrateLoadData() {
+     const loads = await db.loads.findMany()
+     for (const load of loads) {
+       await db.$transaction([
+         db.loads.update({
+           where: { id: load.id },
+           data: {
+             optimization_data: computeOptimizationData(load),
+             ai_matching_score: calculateMatchingScore(load)
+           }
+         }),
+         db.load_events.createMany({
+           data: generateLoadEvents(load)
+         })
+       ])
      }
-     ```
-   - Update `.env` with new environment variables
+   }
+   ```
 
-2. Core Files
-   - Update `App.tsx` to use new routing structure
-   - Update `main.tsx` to remove Redux provider
+## 5. Rollback Procedures
 
-### 7. Files to Remove
+### 5.1 Code Rollback
+1. Version Control
+   - Tag releases
+   - Maintain release branches
+   - Document dependencies
+   - Keep configuration history
 
-1. Deprecated Files
-   - Remove Redux-related files and configurations
-   - Remove old page components after migration
-   - Remove unused utility files
-   - Clean up old test files
+2. Deployment Rollback
+   - Blue-green deployment
+   - Canary releases
+   - Feature flags
+   - Database versioning
 
-## Implementation Steps
+### 5.2 Data Rollback
+1. Backup Strategy
+   - Regular snapshots
+   - Transaction logs
+   - Point-in-time recovery
+   - Data validation
 
-1. **Preparation Phase**
-   - Create new directory structure
-   - Set up new configuration files
-   - Create necessary placeholder files
+2. Recovery Process
+   - Stop services
+   - Restore data
+   - Verify integrity
+   - Resume services
 
-2. **Migration Phase**
-   - Move and refactor components
-   - Update imports and dependencies
-   - Implement new feature modules
-   - Set up Supabase realtime subscriptions
-   - Migrate from Redux to Zustand stores
+## 6. Success Criteria
 
-3. **Testing Phase**
-   - Verify all features work after migration
-   - Run comprehensive test suite
-   - Check for broken dependencies
+### 6.1 Technical Requirements
+1. Performance Metrics
+   - Bundle size < 250KB initial
+   - Page load < 2s
+   - API response < 100ms
+   - WebSocket latency < 50ms
 
-4. **Cleanup Phase**
-   - Remove deprecated files
-   - Update documentation
-   - Verify build process
+2. Code Quality
+   - Test coverage > 90%
+   - Zero critical issues
+   - TypeScript strict mode
+   - ESLint compliance
 
-## Risks and Mitigations
+### 6.2 Business Requirements
+1. Feature Parity
+   - All existing features working
+   - No regression bugs
+   - Improved UX metrics
+   - Enhanced performance
 
-1. **Breaking Changes**
-   - Risk: Component dependencies might break
-   - Mitigation: Implement changes gradually, with thorough testing
+2. Monitoring
+   - Error tracking
+   - Performance monitoring
+   - User analytics
+   - System health checks
 
-2. **Performance Impact**
-   - Risk: New structure might affect bundle size
-   - Mitigation: Implement code splitting and lazy loading
+## 7. Timeline
 
-3. **Development Workflow**
-   - Risk: Team needs to adapt to new structure
-   - Mitigation: Provide clear documentation and examples
+### 7.1 Development Schedule
+Week 1:
+- Infrastructure setup
+- Development environment
+- Build system configuration
 
-## Success Criteria
+Week 2-3:
+- Core services implementation
+- Database migration
+- API integration
 
-1. All files are in their correct locations
-2. All features work as expected
-3. Build process completes successfully
-4. Tests pass with 100% coverage
-5. No deprecated files remain
-6. Documentation is up to date
+Week 4-5:
+- Feature migration
+- Real-time functionality
+- Integration testing
 
-## Next Steps
+Week 6:
+- Performance optimization
+- Documentation
+- Production deployment
 
-1. Review this plan with the team
-2. Create feature-specific implementation plans
-3. Set up new CI/CD pipelines
-4. Begin implementation in phases
+### 7.2 Milestones
+1. Infrastructure Ready
+   - [ ] Monorepo setup
+   - [ ] CI/CD configured
+   - [ ] Development environment
+   - [ ] Testing framework
+
+2. Core Services
+   - [ ] Client application
+   - [ ] WebSocket service
+   - [ ] Load service
+   - [ ] Rate service
+
+3. Features Complete
+   - [ ] Load management
+   - [ ] Rate management
+   - [ ] Tracking system
+   - [ ] Voice/chat system
+
+4. Production Ready
+   - [ ] Performance optimized
+   - [ ] Documentation complete
+   - [ ] Monitoring configured
+   - [ ] Security verified

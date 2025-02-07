@@ -4,7 +4,7 @@
   1. New Tables
     - users
       - id (uuid, primary key)
-      - role (enum: shipper, carrier, broker, admin)
+      - role (enum: shipper, carrier, broker, admin, driver)
       - company_name (text)
       - contact_name (text)
       - phone (text)
@@ -37,7 +37,7 @@
 */
 
 -- Create enum types
-CREATE TYPE user_role AS ENUM ('shipper', 'carrier', 'broker', 'admin');
+CREATE TYPE user_role AS ENUM ('shipper', 'carrier', 'broker', 'admin', 'driver');
 CREATE TYPE load_status AS ENUM ('posted', 'assigned', 'in_transit', 'delivered');
 
 -- Create users table
